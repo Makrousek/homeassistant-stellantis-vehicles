@@ -150,6 +150,12 @@ class StellantisVehiclesConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is None:
             return self.async_show_form(step_id="oauth_remote", data_schema=OAUTH_REMOTE_SCHEMA(self.data.get(FIELD_OAUTH_CODE_URL)), description_placeholders=TRANSLATION_PLACEHOLDERS)
 
+        # Pasted values often carry stray whitespace; a trailing space in the
+        # worker URL turns into %20 and the request never reaches the service.
+        user_input[CONF_EMAIL] = user_input[CONF_EMAIL].strip()
+        if FIELD_OAUTH_CODE_URL in user_input:
+            user_input[FIELD_OAUTH_CODE_URL] = user_input[FIELD_OAUTH_CODE_URL].strip()
+
         try:
             code_request = await self.stellantis.get_oauth_code(user_input[CONF_EMAIL], user_input[CONF_PASSWORD], user_input.get(FIELD_OAUTH_CODE_URL, OAUTH_CODE_URL))
         except Exception as e:
